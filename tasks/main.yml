@@ -1,0 +1,4 @@
+# code: language=ansible
+---
+- name: Main tmux tasks
+  ansible.builtin.include_tasks: tmux.yml

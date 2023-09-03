@@ -1,0 +1,19 @@
+# code: language=ansible
+---
+- name: Symlink global conf file from ohmytmux home to user home
+  become: true
+  ansible.builtin.file:
+    src: '{{ profile.home }}/.tmux.conf'
+    dest: '~{{ username }}/.tmux.conf'
+    force: true
+    state: link
+
+- name: Copy local conf file from ohmytmux home to user home
+  become: true
+  ansible.builtin.copy:
+    src: '{{ profile.home }}/.tmux.conf.local'
+    dest: '~{{ username }}/.tmux.conf.local'
+    owner: '{{ username }}'
+    group: '{{ username }}'
+    mode: '0644'
+    remote_src: true

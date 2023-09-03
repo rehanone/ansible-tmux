@@ -1,0 +1,13 @@
+# code: language=ansible
+---
+- name: Remove tmux conf files from user home
+  become: true
+  ansible.builtin.file:
+    path: '~{{ username }}/{{ item.file }}'
+    state: '{{ item.state }}'
+    mode: '0644'
+  loop:
+    - { file: '.tmux.conf', state: absent }
+    - { file: '.tmux.conf.local', state: absent }
+  loop_control:
+    label: '{{ item.file }}'

@@ -1,0 +1,89 @@
+# code: language=ansible
+---
+# Main tasks file for role
+- name: Setting OS variables
+  ansible.builtin.include_vars: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_facts.distribution }}.yml"
+        - default.yml
+      paths:
+        - vars/os_family
+
+- name: Set tmux_users_with_defaults
+  ansible.builtin.set_fact:
+    tmux_users_with_defaults: >-
+      {{
+          tmux_users_with_defaults | default([]) |
+          union( [tmux_user_defaults | ansible.builtin.combine(user, recursive=true)] )
+      }}
+  loop: '{{ tmux.users }}'
+  loop_control:
+    loop_var: user
+    label: '{{ user.name }}'
+
+- name: Set tmux_with_default_users
+  ansible.builtin.set_fact:
+    tmux_with_default_users:
+      users: '{{ tmux_users_with_defaults }}'
+
+- name: Set tmux_config
+  ansible.builtin.set_fact:
+    tmux_config: >-
+      {{ tmux_defaults |
+        ansible.builtin.combine( (tmux | default(tmux_defaults)), recursive=true ) |
+        ansible.builtin.combine( tmux_with_default_users, recursive=true )
+      }}
+
+- name: Print tmux_config dictionary if debug flag is set
+  ansible.builtin.debug:
+    var: tmux_config
+  when: tmux_config.debug
+
+# Setup package
+- name: 'Setup package {{ tmux_config.package.name }}'
+  become: true
+  ansible.builtin.package:
+    name: '{{ tmux_config.package.name }}'
+    state: '{{ tmux_config.package.state }}'
+  when: tmux_config.package.manage
+
+- name: Clone tmux profile repository
+  become: true
+  ansible.builtin.git:
+    repo: '{{ tmux_config.profile.repository }}'
+    dest: '{{ tmux_config.profile.home }}'
+    version: '{{ tmux_config.profile.revision }}'
+    depth: 1
+  when: tmux_config.profile.state == 'present' and tmux_config.profile.manage
+
+- name: Add profile | include task > profile-add.yml
+  ansible.builtin.include_tasks:
+    file: profile-add.yml
+  vars:
+    username: '{{ user.name }}'
+    profile: '{{ tmux_config.profile }}'
+  when: (user.state == 'present' and user.manage) and (tmux_config.profile.state == 'present' and tmux_config.profile.manage)
+  loop: '{{ tmux_config.users | flatten(levels=1) }}'
+  loop_control:
+    loop_var: user
+    label: '{{ user.name }}'
+
+- name: Remove profile | include task > profile-remove.yml
+  ansible.builtin.include_tasks:
+    file: profile-remove.yml
+  vars:
+    username: '{{ user.name }}'
+  when: (user.state == 'absent' and user.manage) or (tmux_config.profile.state == 'absent' and tmux_config.profile.manage)
+  loop: '{{ tmux_config.users | flatten(levels=1) }}'
+  loop_control:
+    loop_var: user
+    label: '{{ user.name }}'
+
+- name: Remove tmux profile repository
+  become: true
+  ansible.builtin.file:
+    path: '{{ tmux_config.profile.home }}'
+    state: absent
+  when: tmux_config.profile.state == 'absent' and tmux_config.profile.manage

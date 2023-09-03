@@ -1,0 +1,21 @@
+# code: language=ansible
+---
+# Defaults for tmux user profile
+tmux_user_defaults:
+  manage: true
+  state: present
+
+# Defaults dictionary for tmux role
+tmux_defaults:
+  debug: '{{ tmux_debug }}'
+  package:
+    name: '{{ tmux_package_name }}'
+    state: '{{ tmux_package_state }}'
+    manage: '{{ tmux_package_manage }}'
+  profile:
+    repository: '{{ tmux_profile_repository }}'
+    revision: '{{ tmux_profile_revision }}'
+    home: '{{ tmux_profile_home }}'
+    state: '{{ tmux_profile_state }}'
+    manage: '{{ tmux_profile_manage }}'
+  users: []

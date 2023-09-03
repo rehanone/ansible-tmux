@@ -1,0 +1,13 @@
+---
+# Allows logging of the final configuration dictionary with all defaulted values which can be helpful for debugging
+# Default value for debug is false
+tmux_debug: false
+
+tmux_package_manage: true
+tmux_package_state: present
+
+tmux_profile_repository: 'https://github.com/gpakosz/.tmux.git'
+tmux_profile_revision: master
+tmux_profile_home: '/opt/ohmytmux'
+tmux_profile_manage: true
+tmux_profile_state: present
