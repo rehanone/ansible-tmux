@@ -4,8 +4,10 @@ updates:
   - package-ecosystem: pip
     directory: /.config/
     schedule:
-      day: sunday
-      interval: weekly
+      # day: sunday
+      # interval: weekly
+      interval: daily
+      cron: "20 * * * *" # Runs every hour at the 20-minute mark
     labels:
       - dependabot-deps-updates
       - skip-changelog
@@ -20,6 +22,7 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+      cron: "20 * * * *" # Runs every hour at the 20-minute mark
     labels:
       - "dependencies"
       - "skip-changelog"
