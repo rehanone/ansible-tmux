@@ -1,0 +1,37 @@
+---
+name: Ansible Molecule Test
+
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  molecule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python3 -m venv venv_ansible # Create a virtual environment (recommended)
+          source venv_ansible/bin/activate # Activate the virtual environment
+          pip install -r .config/requirements.txt
+
+      # - name: Run Molecule tests
+      #   run: |
+      #     molecule test
+      #   env:
+      #     PY_COLORS: '1' # Enable colored output in logs
+      #     ANSIBLE_FORCE_COLOR: '1'
